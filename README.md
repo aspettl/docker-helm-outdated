@@ -10,6 +10,10 @@ whether there are outdated Helm charts installed in your cluster. Helm 3 only.
   * it mails you a list of outdated charts (if recipient and SMTP configured)
 * Supports to send mails only on changes (if `/data` is a persistent volume)
 
+## Docker image
+
+DockerHub automated builds are used to build [aspettl/docker-helm-outdated](https://hub.docker.com/r/aspettl/docker-helm-outdated).
+
 ## How to install / example
 
 See the example resource definitions in the `deploy` folder. This example includes
