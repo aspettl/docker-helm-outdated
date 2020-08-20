@@ -10,6 +10,18 @@ whether there are outdated Helm charts installed in your cluster. Helm 3 only.
   * it mails you a list of outdated charts (if recipient and SMTP configured)
 * Supports to send mails only on changes (if `/data` is a persistent volume)
 
+## How to install / example
+
+See the example resource definitions in the `deploy` folder. This example includes
+* a cron job that executes once a night
+* a service account with (cluster-wide) read-only permissions, needed to detect all Helm charts
+* a config map with a custom `add_repos.sh` script to add the Helm repositories
+* a secret with SMTP credentials for sending mails
+* a persistent volume claim, needed to send emails only on changes
+
+Use `kubectl create job --namespace=helm-outdated --from=cronjob/helm-outdated helm-outdated-test`
+to schedule a job immediately.
+
 ## License
 
 MIT license, see [LICENSE](https://github.com/aspettl/docker-helm-outdated/blob/master/LICENSE)

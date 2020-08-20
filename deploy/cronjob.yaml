@@ -1,0 +1,74 @@
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: helm-outdated
+  namespace: helm-outdated
+spec:
+  schedule: "0 3 * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: helm-outdated
+          containers:
+          - name: helm-outdated
+            image: aspettl/docker-helm-outdated:latest
+            imagePullPolicy: Always
+            env:
+            - name: "SMTP_HOST"
+              valueFrom:
+                secretKeyRef:
+                  key: SMTP_HOST
+                  name: helm-outdated-secret
+            - name: "SMTP_PORT"
+              valueFrom:
+                secretKeyRef:
+                  key: SMTP_PORT
+                  name: helm-outdated-secret
+            - name: "SMTP_TLS"
+              valueFrom:
+                secretKeyRef:
+                  key: SMTP_TLS
+                  name: helm-outdated-secret
+            - name: "SMTP_AUTH"
+              valueFrom:
+                secretKeyRef:
+                  key: SMTP_AUTH
+                  name: helm-outdated-secret
+            - name: "SMTP_USER"
+              valueFrom:
+                secretKeyRef:
+                  key: SMTP_USER
+                  name: helm-outdated-secret
+            - name: "SMTP_PASS"
+              valueFrom:
+                secretKeyRef:
+                  key: SMTP_PASS
+                  name: helm-outdated-secret
+            - name: "SMTP_FROM"
+              valueFrom:
+                secretKeyRef:
+                  key: SMTP_FROM
+                  name: helm-outdated-secret
+            - name: "SMTP_TO"
+              valueFrom:
+                configMapKeyRef:
+                  key: SMTP_TO
+                  name: helm-outdated-config
+            volumeMounts:
+            - name: config
+              mountPath: /home/linux/add_repos.sh
+              subPath: add_repos.sh
+            - name: data
+              mountPath: "/data"
+          volumes:
+          - name: config
+            configMap:
+              name: helm-outdated-config
+              defaultMode: 0755
+          - name: data
+            persistentVolumeClaim:
+              claimName: helm-outdated
+          restartPolicy: Never
