@@ -8,8 +8,12 @@ RUN groupadd -g 1000 linux && useradd -m -u 1000 -g linux linux
 USER 1000
 WORKDIR /home/linux
 
-RUN helm plugin install https://github.com/fabmation-gmbh/helm-whatup && \
-    rm -rf /tmp/helm-whatup*
+ENV WHATUP_URL=https://github.com/fabmation-gmbh/helm-whatup/releases/download/v0.4.1/helm-whatup-0.4.1-linux-amd64.tar.gz
+
+RUN curl -L -o /tmp/helm-whatup.tar.gz $WHATUP_URL && \
+    mkdir -p /home/linux/.local/share/helm/plugins/helm-whatup && \
+    tar -xzf /tmp/helm-whatup.tar.gz -C /home/linux/.local/share/helm/plugins/helm-whatup/ && \
+    rm -f /tmp/helm-whatup.tar.gz
 
 
 FROM ubuntu:20.04
