@@ -50,7 +50,7 @@ setup_helm
 
 echo ""
 
-helm whatup --all-namespaces --output json | grep -v '^WARNING:' | jq -c '.releases | sort_by(.namespace, .chart, .name)' > /tmp/whatup.json
+helm whatup --all-namespaces --output json | jq -c '.releases | sort_by(.namespace, .chart, .name)' > /tmp/whatup.json
 pretty_print < /tmp/whatup.json
 
 echo ""
