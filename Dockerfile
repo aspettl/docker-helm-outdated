@@ -8,7 +8,7 @@ RUN groupadd -g 1000 linux && useradd -m -u 1000 -g linux linux
 USER 1000
 WORKDIR /home/linux
 
-ENV WHATUP_URL=https://github.com/fabmation-gmbh/helm-whatup/releases/download/v0.6.0/helm-whatup-0.6.0-linux-amd64.tar.gz
+ENV WHATUP_URL=https://github.com/fabmation-gmbh/helm-whatup/releases/download/v0.6.1/helm-whatup-0.6.1-linux-amd64.tar.gz
 
 RUN curl -L -o /tmp/helm-whatup.tar.gz $WHATUP_URL && \
     mkdir -p /home/linux/.local/share/helm/plugins/helm-whatup && \
