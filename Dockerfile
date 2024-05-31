@@ -1,26 +1,39 @@
-FROM ubuntu:20.04 AS builder
+# 1.) build helm-whatup from source (because there is no binary release for linux/arm64)
+
+FROM --platform=$BUILDPLATFORM golang:1.22-bookworm AS buildwhatup
+
+ENV WHATUP_SOURCE_URL=https://github.com/fabmation-gmbh/helm-whatup/archive/refs/tags/v0.6.3.tar.gz
+
+RUN curl -L -o /tmp/helm-whatup.tar.gz $WHATUP_SOURCE_URL && \
+    mkdir /helm-whatup && \
+    tar -xzf /tmp/helm-whatup.tar.gz --strip-components=1 -C /helm-whatup/ && \
+    rm -f /tmp/helm-whatup.tar.gz
+
+WORKDIR /helm-whatup
+
+ARG TARGETOS
+ARG TARGETARCH
+
+ENV GOOS=${TARGETOS}
+ENV GOARCH=${TARGETARCH}
+
+RUN echo "Will run build with environment: GOOS=$GOOS GOARCH=$GOARCH" && make build
+
+# 2.) get latest version of helm
+
+FROM --platform=$TARGETPLATFORM ubuntu:20.04 AS gethelm
 
 RUN apt-get update && apt-get install -y curl git && rm -rf /var/lib/apt/lists/*
 
 RUN curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 
-RUN groupadd -g 1000 linux && useradd -m -u 1000 -g linux linux
-USER 1000
-WORKDIR /home/linux
+# 3.) build actual container image
 
-ENV WHATUP_URL=https://github.com/fabmation-gmbh/helm-whatup/releases/download/v0.6.3/helm-whatup-0.6.3-linux-amd64.tar.gz
-
-RUN curl -L -o /tmp/helm-whatup.tar.gz $WHATUP_URL && \
-    mkdir -p /home/linux/.local/share/helm/plugins/helm-whatup && \
-    tar -xzf /tmp/helm-whatup.tar.gz -C /home/linux/.local/share/helm/plugins/helm-whatup/ && \
-    rm -f /tmp/helm-whatup.tar.gz
-
-
-FROM ubuntu:20.04
+FROM --platform=$TARGETPLATFORM ubuntu:20.04
 
 RUN apt-get update && apt-get install -y jq bsdmainutils msmtp && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /usr/local/bin/helm /usr/local/bin/
+COPY --from=gethelm /usr/local/bin/helm /usr/local/bin/
 
 RUN mkdir /data && chown 1000:1000 /data
 
@@ -28,7 +41,10 @@ RUN groupadd -g 1000 linux && useradd -m -u 1000 -g linux linux
 USER 1000
 WORKDIR /home/linux
 
-COPY --from=builder --chown=1000:1000 /home/linux/.local /home/linux/.local
+RUN mkdir -p .local/share/helm/plugins/helm-whatup/bin/
+
+COPY --from=buildwhatup --chown=1000:1000 /helm-whatup/README.md /helm-whatup/LICENSE.md /helm-whatup/plugin.yaml /home/linux/.local/share/helm/plugins/helm-whatup/
+COPY --from=buildwhatup --chown=1000:1000 /helm-whatup/bin/helm-whatup /home/linux/.local/share/helm/plugins/helm-whatup/bin/
 
 ADD --chown=1000:1000 add_repos.sh run.sh /home/linux/
 
