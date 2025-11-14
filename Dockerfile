@@ -1,6 +1,6 @@
 # 1.) build helm-whatup from source (because there is no binary release for linux/arm64)
 
-FROM --platform=$BUILDPLATFORM golang:1.22-bookworm AS buildwhatup
+FROM --platform=$BUILDPLATFORM docker.io/library/golang:1.22-bookworm AS buildwhatup
 
 ENV WHATUP_SOURCE_URL=https://github.com/fabmation-gmbh/helm-whatup/archive/refs/tags/v0.6.3.tar.gz
 
@@ -21,7 +21,7 @@ RUN echo "Will run build with environment: GOOS=$GOOS GOARCH=$GOARCH" && make bu
 
 # 2.) get latest version of helm
 
-FROM --platform=$TARGETPLATFORM ubuntu:20.04 AS gethelm
+FROM --platform=$TARGETPLATFORM docker.io/library/ubuntu:22.04 AS gethelm
 
 RUN apt-get update && apt-get install -y curl git && rm -rf /var/lib/apt/lists/*
 
@@ -29,7 +29,7 @@ RUN curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 |
 
 # 3.) build actual container image
 
-FROM --platform=$TARGETPLATFORM ubuntu:20.04
+FROM --platform=$TARGETPLATFORM docker.io/library/ubuntu:22.04
 
 RUN apt-get update && apt-get install -y jq bsdmainutils msmtp && rm -rf /var/lib/apt/lists/*
 
