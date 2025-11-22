@@ -25,7 +25,7 @@ FROM --platform=$TARGETPLATFORM docker.io/library/ubuntu:22.04 AS gethelm
 
 RUN apt-get update && apt-get install -y curl git && rm -rf /var/lib/apt/lists/*
 
-RUN curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+RUN curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-4 | bash
 
 # 3.) build actual container image
 
